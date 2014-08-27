@@ -25,8 +25,8 @@ defmodule Sqlite3Lib do
 ##====================================================================
 ##--------------------------------------------------------------------
   @doc "Maps sqlite3 column type."
-  @spec col_type_to_string(atom) :: bitstring
-  @spec col_type_to_string(bitstring) :: bitstring
+  @spec col_type_to_string(atom) :: <<>>
+  @spec col_type_to_string(<<>>) :: <<>>
   defp col_type_to_string(:integer), do: "INTEGER"
   defp col_type_to_string(:text), do: "TEXT"
   defp col_type_to_string(:double), do: "REAL"
@@ -39,7 +39,7 @@ defmodule Sqlite3Lib do
 
 ##--------------------------------------------------------------------
   @doc "Maps sqlite3 column type."
-  @spec col_type_to_atom(bitstring) :: atom
+  @spec col_type_to_atom(<<>>) :: atom
   def col_type_to_atom("INTEGER"), do: :integer
   def col_type_to_atom("TEXT"), do: :text
   def col_type_to_atom("REAL"), do: :double
@@ -57,19 +57,20 @@ defmodule Sqlite3Lib do
   use value_to_sql/1 if you are not sure if your strings contain
   single quotes (e.g. can be entered by users).
   """
-  @spec value_to_sql_unsafe(sql_value()) -> iolist().
-# value_to_sql_unsafe(X) ->
-#     case X of
-#         _ when is_integer(X)   -> integer_to_list(X);
-#         _ when is_float(X)     -> float_to_list(X);
-#         true -> "1";
-#         false -> "0";
-#         undefined  -> "NULL";
-#         ?NULL_ATOM -> "NULL";
-#         {blob, Blob} -> ["x'", bin_to_hex(Blob), $'];
-#         _            -> [$', unicode:characters_to_binary(X), $'] %% assumes no $' inside strings!
-#     end.
-# 
+  # Not sure what to do w/ iolist
+  @spec value_to_sql_unsafe(sql_value) :: <<>>
+  value_to_sql_unsafe(x) ->
+      case x do
+          _ when is_integer(x)   -> integer_to_list(x);
+          _ when is_float(x)     -> float_to_list(x);
+          true -> "1";
+          false -> "0";
+          undefined  -> "NULL";
+          ?NULL_ATOM -> "NULL";
+          {blob, Blob} -> ["x'", bin_to_hex(Blob), $'];
+          _            -> [$', unicode:characters_to_binary(x), $'] %% assumes no $' inside strings!
+      end.
+  
 ##--------------------------------------------------------------------
 ## @doc 
 ##    Converts an Erlang term to an SQL string.
@@ -79,18 +80,18 @@ defmodule Sqlite3Lib do
 ##    All single quotes (') will be replaced with ''.
 ## @end
 ##--------------------------------------------------------------------
-  @spec value_to_sql(sql_value) :: iolist
-  def value_to_sql(X) do
-#     case X of
-#         _ when is_integer(X)   -> integer_to_list(X);
-#         _ when is_float(X)     -> float_to_list(X);
-#         true -> "1";
-#         false -> "0";
-#         undefined  -> "NULL";
-#         ?NULL_ATOM -> "NULL";
-#         {blob, Blob} -> ["x'", bin_to_hex(Blob), $'];
-#         _            -> [$', unicode:characters_to_binary(escape(X)), $']
-#     end.
+  @spec value_to_sql(sql_value) :: [<<>>]
+  def value_to_sql(x) do
+     case x do
+         _ when is_integer(x)   -> integer_to_list(x);
+         _ when is_float(x)     -> float_to_list(x);
+         true -> "1";
+         false -> "0";
+         :undefined  -> "NULL";
+         ?NULL_ATOM -> "NULL";
+         {:blob, blob} -> ["x'", bin_to_hex(Blob), ?'];
+         _             -> [?', unicode:characters_to_binary(escape(X)), ?']
+     end
   end
 # 
 ##--------------------------------------------------------------------
