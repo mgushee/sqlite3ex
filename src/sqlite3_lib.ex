@@ -94,27 +94,24 @@ defmodule Sqlite3Lib do
   end
 # 
 ##--------------------------------------------------------------------
-## @doc 
-##    Converts an SQL value to an Erlang term.
-## @end
-##--------------------------------------------------------------------
-# sql_to_value(String) ->
-#     case String of
-#         "NULL" -> null;
-#         "CURRENT_TIME" -> current_time;
-#         "CURRENT_DATE" -> current_date;
-#         "CURRENT_TIMESTAMP" -> current_timestamp;
-#         [FirstChar | Tail] ->
-#             case FirstChar of
-#                 $' -> sql_string(Tail);
-#                 $x -> sql_blob(Tail);
-#                 $X -> sql_blob(Tail);
-#                 $+ -> sql_number(Tail);
-#                 $- -> -sql_number(Tail);
-#                 Digit when $0 =< Digit, Digit =< $9 -> sql_number(Tail)
-#             end
-#     end.
-# 
+  @doc "Converts an SQL value to an Erlang term."
+  def sql_to_value(string) do
+      case string do
+          "NULL" -> nil
+          "CURRENT_TIME" -> :current_time
+          "CURRENT_DATE" -> :current_date
+          "CURRENT_TIMESTAMP" -> :current_timestamp
+          [first | tail] ->
+              case first do
+                  ?' -> sql_string(tail)
+                  ?x -> sql_blob(tail)
+                  ?X -> sql_blob(tail)
+                  ?+ -> sql_number(tail)
+                  ?- -> -sql_number(tail)
+                  digit when ?0 =< digit, digit =< ?9 -> sql_number(tail)
+              end
+      end
+  
 ##--------------------------------------------------------------------
 ## @doc 
 ##    Creates the values portion of the sql stmt.
